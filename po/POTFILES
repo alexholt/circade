@@ -1,0 +1,7 @@
+data/me.alexholt.Circade.desktop.in
+data/me.alexholt.Circade.appdata.xml.in
+data/me.alexholt.Circade.gschema.xml
+src/circade-window.ui
+src/main.c
+src/circade-window.c
+

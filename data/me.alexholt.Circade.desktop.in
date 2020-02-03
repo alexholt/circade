@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=circade
+Exec=circade
+Terminal=false
+Type=Application
+Categories=GTK;
+StartupNotify=true
