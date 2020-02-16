@@ -24,7 +24,7 @@ app.use(function (req, res) {
   req.next();
 });
 
-app.get('/:year/:month/:day', async function (req, res) {
+app.get('/entry/:year/:month/:day', async function (req, res) {
   res.setHeader('Content-Type', 'text/json');
   const {year, month, day} = req.params;
   getEntry(1, `${year}-${month}-${day}`).then(result => {

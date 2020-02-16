@@ -106,7 +106,7 @@
                         <property name="row_homogeneous">True</property>
                         <property name="column_homogeneous">True</property>
                         <child>
-                          <object class="GtkLabel" id="email-label">
+                          <object class="GtkLabel" id="email_label">
                             <property name="name">Email Label</property>
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
@@ -119,7 +119,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkEntry">
+                          <object class="GtkEntry" id="email_entry">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                           </object>
@@ -129,7 +129,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkLabel" id="password-label">
+                          <object class="GtkLabel" id="password_label">
                             <property name="name">Password Label</property>
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
@@ -141,7 +141,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkEntry">
+                          <object class="GtkEntry" id="password_entry">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="visibility">False</property>
@@ -154,7 +154,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkButton">
+                          <object class="GtkButton" id="login_button">
                             <property name="label" translatable="yes">Log In</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
