@@ -4,10 +4,10 @@ const express = require('express');
 const env = require('dotenv').config();
 
 if (env.error) {
-  throw result.error
+  throw env.error;
 }
 
-const {getEntry, putEntry, postEntry, login, createUser} = require('./db');
+const {getEntry, postEntry, login, createUser} = require('./db');
 
 const app = express();
 
@@ -25,9 +25,18 @@ app.use(function (req, res) {
 });
 
 app.get('/entry/:year/:month/:day', async function (req, res) {
-  res.setHeader('Content-Type', 'text/json');
+  res.setHeader('Content-Type', 'application/json');
   const {year, month, day} = req.params;
-  getEntry(1, `${year}-${month}-${day}`).then(result => {
+  console.log("userId: ", req.session.userId);
+
+  if (!req.session.userId) {
+    res.send(JSON.stringify({status: 'failure'}));
+    return;
+  }
+
+  getEntry(req.session.userId, `${year}-${month}-${day}`).then(result => {
+    if (!result) result = {title: '', entry: ''};
+    result.status = 'success';
     res.send(JSON.stringify(result));
   });
 });
@@ -50,6 +59,21 @@ app.put('/user', async function (req, res) {
     req.session.userId = id;
     res.send(JSON.stringify({status: 'success'}));
   }
+});
+
+app.post('/entry/:year/:month/:day', async function (req, res) {
+  res.setHeader('Content-Type', 'application/json');
+  const {year, month, day} = req.params;
+  console.log("userId: ", req.session.userId);
+
+  if (!req.session.userId) {
+    res.send(JSON.stringify({status: 'failure'}));
+    return;
+  }
+
+  postEntry(req.session.userId, `${year}-${month}-${day}`, req.body.title, req.body.entry).then(result => {
+    res.send(JSON.stringify({status: 'success'}));
+  });
 });
 
 app.listen(process.env.PORT, () => console.log(`Listening on ${process.env.PORT}`));

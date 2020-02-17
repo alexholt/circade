@@ -27,17 +27,10 @@ async function getEntry(userId, date) {
   return await execute('select title, entry from entry where user_id=? and date=?', [userId, date]);
 }
 
-async function putEntry(userId, date, title, entry) {
-  return await execute(
-    'insert into entry (user_id, date, title, entry) values (?, ?, ?, ?)',
-    [userId, date, title, entry]
-  );
-}
-
 async function postEntry(userId, date, title, entry) {
   return await execute(
-    'update entry set title=?, entry=? where user_id=? and date=?',
-    [title, entry, userId, date]
+    'insert into entry (user_id, date, title, entry) values (?, ?, ?, ?) ON DUPLICATE KEY UPDATE title=?, entry=?',
+    [userId, date, title, entry, title, entry]
   );
 }
 
@@ -66,4 +59,4 @@ async function login(email, password) {
   return null;
 }
 
-module.exports = {getEntry, putEntry, postEntry, createUser, login};
+module.exports = {getEntry, postEntry, createUser, login};

@@ -23,6 +23,8 @@ struct _CircadeWindow
 {
     GtkApplicationWindow  parent_instance;
 
+    SoupCookieJar *cookie_jar;
+
     /* Template widgets */
     GtkPaned *paned;
     GtkCalendar *calendar;
@@ -34,6 +36,7 @@ struct _CircadeWindow
 
     GString *current_title;
     GString *current_entry;
+    GString *current_date_string;
     JsonParser *parser;
 };
 
@@ -68,41 +71,53 @@ circade_fetch (CircadeWindow *self,
 {
     SoupMessage *msg;
     SoupSession *session;
-    session = g_object_new (
-        SOUP_TYPE_SESSION,
+
+    session = soup_session_new_with_options (
         SOUP_SESSION_ADD_FEATURE_BY_TYPE, SOUP_TYPE_CONTENT_DECODER,
-        SOUP_SESSION_ADD_FEATURE_BY_TYPE, SOUP_TYPE_COOKIE_JAR,
         SOUP_SESSION_USER_AGENT, "circade-gtk-client",
         SOUP_SESSION_ACCEPT_LANGUAGE_AUTO, TRUE,
         NULL
     );
 
-    g_string_prepend (url, "http://localhost:9009");
+    soup_session_add_feature (session, SOUP_SESSION_FEATURE (self->cookie_jar));
+
     GString *get_method = g_string_new ("GET");
-    GString *url_with_args = g_string_new(url->str);
+    GString *post_method = g_string_new ("POST");
+    GString *put_method = g_string_new ("PUT");
+
+    GString *url_with_args = g_string_new (url->str);
+    g_string_prepend (url_with_args, "http://localhost:9009");
 
     if (g_string_equal (method, get_method)) {
         g_string_append (url_with_args, args->str);
         msg = soup_message_new (method->str, url_with_args->str);
-    } else {
-        msg = soup_message_new (method->str, url->str);
+    } else if (g_string_equal (method, post_method)) {
+        msg = soup_message_new (method->str, url_with_args->str);
         soup_message_set_request (msg, "application/json", SOUP_MEMORY_COPY, args->str, args->len);
+    } else {
+        g_critical ("Unsupported method passed");
+        exit (1);
     }
-
 
     SoupURI *uri;
     gchar *uri_string;
 
-    uri = soup_uri_new (url->str);
+    uri = soup_uri_new (url_with_args->str);
     uri_string = soup_uri_to_string (uri, FALSE);
+    g_print ("%s", soup_cookie_jar_get_cookies (self->cookie_jar, uri, TRUE));
     soup_uri_free (uri);
 
     soup_session_send_message (session, msg);
 
-    GString *res = g_string_new(msg->response_body->data);
+    GString *res = g_string_new (msg->response_body->data);
 
     g_free (uri_string);
-    g_string_free (url_with_args, FALSE);
+    g_string_free (url_with_args, TRUE);
+
+    g_string_free (get_method, TRUE);
+    g_string_free (post_method, TRUE);
+    g_string_free (put_method, TRUE);
+
     g_object_unref (session);
     g_object_unref (msg);
 
@@ -141,13 +156,11 @@ circade_update_date (GtkCalendar *calendar, gpointer self)
 
     gtk_calendar_get_date(calendar, &year, &month, &day);
 
-    //GString *date_str = g_string_new("");
-    //g_string_printf (date_str, "%d-%d-%d", year, ++month, day);
-    //g_print("%s", date_str->str);
-
     GString *url = g_string_new ("/entry");
     GString *args = g_string_new ("");
     g_string_append_printf(args, "/%d/%d/%d", year, month, day);
+
+    circade_window->current_date_string = g_string_new(args->str);
 
     GString *method = g_string_new ("GET");
     GString *res = circade_fetch (circade_window, url, args, method);
@@ -170,9 +183,9 @@ circade_update_date (GtkCalendar *calendar, gpointer self)
         circade_window->current_entry->len
     );
 
-    g_string_free (args, FALSE);
-    g_string_free (method, FALSE);
-    g_string_free (res, FALSE);
+    g_string_free (args, TRUE);
+    g_string_free (method, TRUE);
+    g_string_free (res, TRUE);
 }
 
 static void
@@ -187,10 +200,10 @@ circade_log_in (CircadeWindow *self, GString *email, GString *password)
     GString *res = circade_fetch (self, url, args, method);
     g_print("%s", res->str);
 
-    g_string_free (args, FALSE);
-    g_string_free (method, FALSE);
-    g_string_free (res, FALSE);
-    g_string_free (url, FALSE);
+    g_string_free (args, TRUE);
+    g_string_free (method, TRUE);
+    g_string_free (res, TRUE);
+    g_string_free (url, TRUE);
 }
 
 static void
@@ -205,8 +218,39 @@ circade_login_button_clicked (G_GNUC_UNUSED GtkButton *button, gpointer self)
 
     circade_log_in (self, email, password);
 
-    g_string_free (email, FALSE);
-    g_string_free (password, FALSE);
+    g_string_free (email, TRUE);
+    g_string_free (password, TRUE);
+}
+
+static void
+circade_update_entry (GtkTextBuffer *buffer, gpointer self)
+{
+   CircadeWindow* circade_window = CIRCADE_WINDOW (self);
+
+   GtkTextBuffer *title_buffer = gtk_text_view_get_buffer (circade_window->title);
+   GtkTextBuffer *notepad_buffer = gtk_text_view_get_buffer (circade_window->notepad);
+
+   GtkTextIter start, end;
+
+   gtk_text_buffer_get_bounds (title_buffer, &start, &end);
+   const gchar *title_text = gtk_text_buffer_get_text (title_buffer, &start, &end, FALSE);
+
+   gtk_text_buffer_get_bounds (notepad_buffer, &start, &end);
+   const gchar *notepad_text = gtk_text_buffer_get_text (notepad_buffer, &start, &end, FALSE);
+
+   GString *json = g_string_new ("");
+   g_string_append_printf (json, "{ \"title\": \"%s\", \"entry\": \"%s\"}", title_text, notepad_text);
+
+   GString *url = g_string_new ("/entry");
+   g_string_append (url, circade_window->current_date_string->str);
+
+   GString *method = g_string_new ("POST");
+   circade_fetch (circade_window, url, json, method);
+
+   g_print ("UPDATED TO: %s\n", json->str);
+   g_string_free (json, TRUE);
+   g_string_free (url, TRUE);
+   g_string_free (method, TRUE);
 }
 
 static void
@@ -214,6 +258,12 @@ circade_connect_signals(CircadeWindow *self)
 {
     g_signal_connect (self->calendar, "day-selected", G_CALLBACK (circade_update_date), self);
     g_signal_connect (self->login_button, "clicked", G_CALLBACK (circade_login_button_clicked), self);
+    g_signal_connect (
+        gtk_text_view_get_buffer (self->title),
+        "end-user-action",
+        G_CALLBACK (circade_update_entry),
+        self
+    );
 }
 
 
@@ -239,10 +289,16 @@ circade_window_init (CircadeWindow *self)
     GtkTextBuffer *buffer = gtk_text_view_get_buffer (self->title);
     GtkTextBuffer *note_buffer = gtk_text_view_get_buffer (self->notepad);
 
+    self->cookie_jar = soup_cookie_jar_new ();
     self->current_title = g_string_new ("");
     self->current_entry = g_string_new ("");
+    self->current_date_string = g_string_new ("");
 
     gtk_text_buffer_set_text (buffer, "WHAT", 4);
     gtk_text_buffer_set_text (note_buffer, "NOTE", 4);
+
     circade_connect_signals (self);
+
+    g_object_unref (buffer);
+    g_object_unref (note_buffer);
 }
