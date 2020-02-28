@@ -1,4 +1,4 @@
-/* circade-window.h
+/* circade-cookie-jar.h
  *
  * Copyright 2020 Alex Holt
  *
@@ -20,14 +20,12 @@
 
 #include <gtk/gtk.h>
 #include <libsoup/soup.h>
-#include <json-glib/json-glib.h>
-
-#include "circade-cookie-jar.h"
+#include <libsecret/secret.h>
 
 G_BEGIN_DECLS
 
-#define CIRCADE_TYPE_WINDOW (circade_window_get_type())
+#define CIRCADE_TYPE_COOKIE_JAR (circade_cookie_jar_get_type())
 
-G_DECLARE_FINAL_TYPE (CircadeWindow, circade_window, CIRCADE, WINDOW, GtkApplicationWindow)
+G_DECLARE_FINAL_TYPE (CircadeCookieJar, circade_cookie_jar, CIRCADE, CIRCADE_COOKIE_JAR, SoupCookieJar)
 
 G_END_DECLS

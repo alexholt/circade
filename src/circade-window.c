@@ -16,7 +16,6 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "circade-config.h"
 #include "circade-window.h"
 
 struct _CircadeWindow
@@ -298,6 +297,13 @@ circade_window_init (CircadeWindow *self)
     gtk_text_buffer_set_text (note_buffer, "NOTE", 4);
 
     circade_connect_signals (self);
+
+    CircadeCookieJar *cookie_jar = g_object_new (CIRCADE_TYPE_COOKIE_JAR, NULL);
+
+    //SoupCookie *test_cookie = soup_cookie_new ("test", "value", "http://localhost", "path", 100);
+    //soup_cookie_jar_add_cookie (SOUP_COOKIE_JAR (cookie_jar), test_cookie);
+    //GSList *list = soup_cookie_jar_get_cookie_list (cookie_jar, "http://localhost", FALSE);
+    //g_print (g_slist_nth (list, 0));
 
     g_object_unref (buffer);
     g_object_unref (note_buffer);
