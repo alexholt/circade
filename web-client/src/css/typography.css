@@ -1,0 +1,20 @@
+html {
+  font-family: 'Roboto Mono', monospace;
+  font-weight: 500;
+  font-size: 16px;
+  color: var(--text);
+}
+
+h1 {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+h2 {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+a {
+  color: var(--text);
+}

@@ -1,0 +1,27 @@
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  height: 100vh;
+  width: 100vw;
+}
+
+.layout--calendar {
+  max-width: 280px;
+  border-right: solid 2px var(--background-alt);
+}
+
+.layout--notepad {
+  display: flex;
+}
+
+@media screen and (max-width: 900px) {
+  .layout {
+    display: block;
+  }
+
+  .layout--calendar {
+    height: 300px;
+    max-width: unset;
+  }
+}
+
