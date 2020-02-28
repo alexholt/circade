@@ -34,7 +34,7 @@
             "sources" : [
                 {
                     "type" : "git",
-                    "url" : "file:///home/alex/workspace/circade"
+                    "url" : "file:///home/alex/workspace/circade/desktop-client"
                 }
             ]
         }
