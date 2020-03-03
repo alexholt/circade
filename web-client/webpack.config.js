@@ -1,7 +1,7 @@
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
-const IgnorePlugin = require('webpack').IgnorePlugin;
+const {IgnorePlugin, DefinePlugin} = require('webpack');
 const path = require('path');
 
 const config = {
@@ -57,6 +57,11 @@ const config = {
     ]),
 
     new IgnorePlugin(/^\.\/locale$/, /moment$/),
+
+    new DefinePlugin({
+      NODE_ENV: `'${process.env.NODE_ENV}'`,
+      SERVER: `'${process.env.SERVER}'`,
+    }),
 
   ],
 };

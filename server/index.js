@@ -24,6 +24,12 @@ app.use(function (req, res) {
   req.next();
 });
 
+app.use(function (req, res) {
+  res.setHeader('Access-Control-Allow-Origin', `${process.env.ORIGIN}`);
+  res.setHeader('Access-Control-Allow-Headers', `Content-Type`);
+  req.next();
+});
+
 app.get('/entry/:year/:month/:day', async function (req, res) {
   res.setHeader('Content-Type', 'application/json');
   const {year, month, day} = req.params;
@@ -41,10 +47,23 @@ app.get('/entry/:year/:month/:day', async function (req, res) {
   });
 });
 
+app.options('/login', async function (req, res) {
+  req.next();
+});
+
 app.post('/login', async function (req, res) {
-  const id = await login(req.body.email, req.body.password);
+  let id;
+
+  try {
+    id = await login(req.body.email, req.body.password);
+  } catch (err) {
+    const message = process.env.NODE_ENV == 'development' ? err.message : 'Login failure.';
+    res.send(JSON.stringify({status: 'failure', message}));
+    return res.end();
+  }
+
   if (id == null) {
-    res.send(JSON.stringify({status: 'failure'}));
+    res.send(JSON.stringify({status: 'failure', message: 'Login failure.'}));
   } else {
     req.session.userId = id;
     res.send(JSON.stringify({status: 'success'}));

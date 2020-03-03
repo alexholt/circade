@@ -2,5 +2,8 @@
   --background: #594747;
   --background-alt: #7A6E6E;
   --text: #fff;
-  --text-alt: #808080;
+  --text-alt: #303030;
+  --text-disabled: #707070;
+  --text-error: #ffa3a3;
+  --button: #d2d2d2;
 }

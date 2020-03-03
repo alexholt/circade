@@ -28,11 +28,11 @@
 
   &--submit {
     grid-column: 2;
-    border-radius: none;
-    background-color: var(--background-alt);
+    border-radius: 2px;
+    background-color: var(--button);
     border: none;
     outline: none;
-    color: var(--text);
+    color: var(--text-alt);
     cursor: pointer;
     padding: 0.2em;
   }

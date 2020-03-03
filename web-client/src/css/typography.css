@@ -17,8 +17,23 @@ h2 {
 
 a {
   color: var(--text);
+  font-size: 18px;
 }
 
 textarea {
   font-size: 18px;
 }
+
+.text--small {
+  font-size: 14px;
+}
+
+.text--disabled {
+  color: var(--text-disabled);
+}
+
+.text--error {
+  color: var(--text-error);
+  transition: color 1s;
+}
+

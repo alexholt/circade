@@ -34,27 +34,27 @@ async function postEntry(userId, date, title, entry) {
   );
 }
 
-function sha512(password) {
-  const hash = crypto.createHmac('sha512', process.env.AUTH_SALT);
-  hash.update(password);
-  return hash.digest('hex');
+async function sha512(password) {
+  const result = await execute('select SHA2(?, 512)', [password + process.env.AUTH_SALT]);
+  return Object.values(result)[0];
 }
 
 async function getUser(email) {
-  const result = await execute('select id, password from user where email=?', [email]);
+  const result = await execute('select id, password from users where email=?', [email]);
   return result;
 }
 
 async function createUser(email, password) {
-  const hashed = sha512(password);
-  const result = await execute('insert into user (email, password) values (?, ?)', [email, hashed]);
+  const hashed = await sha512(password);
+  const result = await execute('insert into users (email, password) values (?, ?)', [email, hashed]);
   return await getUser(email).id;
 }
 
 async function login(email, password) {
-  const hashed = sha512(password);
+  const hashed = await sha512(password);
   const user = await getUser(email);
   if (!user) return null;
+  console.log(hashed, user.password);
   if (hashed == user.password) return user.id;
   return null;
 }
