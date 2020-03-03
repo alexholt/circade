@@ -1,17 +1,12 @@
 import ReactDom from 'react-dom';
 import React from 'react';
-import Calendar from './js/calendar';
-import moment from 'moment';
-import Notepad from './js/notepad';
+import App from './js/app';
 
 import './css/index.css';
 
 window.addEventListener('load', () => {
   ReactDom.render(
-    <div className='layout'>
-      <Calendar date={moment().subtract(2, 'month')}/>
-      <Notepad/>
-    </div>,
+    <App/>,
     document.body.querySelector('main')
   );
 });

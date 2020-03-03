@@ -1,9 +1,13 @@
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+const IgnorePlugin = require('webpack').IgnorePlugin;
 const path = require('path');
 
-module.exports = {
+const config = {
   mode: process.env.NODE_ENV,
+
+  devtool: process.env.NODE_ENV == 'development' ? 'source-map' : 'none',
 
   entry: path.resolve(__dirname, 'src/index.js'),
 
@@ -16,6 +20,7 @@ module.exports = {
           loader: 'babel-loader',
           options: {
             presets: ['@babel/preset-env', '@babel/preset-react'],
+            plugins: ['@babel/plugin-proposal-class-properties'],
           },
         },
         exclude: /node_modules/,
@@ -39,9 +44,25 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, 'src/index.html'),
     }),
-    new CopyWebpackPlugin([{
-      from: path.resolve(__dirname, 'img'),
-      to: path.resolve(__dirname, 'dist/img'),
-    }]),
+
+    new CopyWebpackPlugin([
+      {
+        from: path.resolve(__dirname, 'serve.json'),
+        to: path.resolve(__dirname, 'dist/serve.json'),
+      },
+      {
+        from: path.resolve(__dirname, 'img'),
+        to: path.resolve(__dirname, 'dist/img'),
+      }
+    ]),
+
+    new IgnorePlugin(/^\.\/locale$/, /moment$/),
+
   ],
 };
+
+if (process.env.ANALYZE_BUNDLE == 'true') {
+  config.plugins.push( new BundleAnalyzerPlugin({ openAnalyzer: false }) );
+}
+
+module.exports = config;

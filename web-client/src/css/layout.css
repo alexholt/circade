@@ -14,6 +14,12 @@
   display: flex;
 }
 
+.layout__login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 @media screen and (max-width: 900px) {
   .layout {
     display: block;

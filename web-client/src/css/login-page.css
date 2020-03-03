@@ -1,0 +1,39 @@
+.login {
+  height: 100vh;
+  width: 100vw;
+
+  &--form {
+    display: grid;
+    grid-template-rows: 1fr 1fr 1fr;
+    grid-row-gap: 10px;
+    grid-template-columns: 1fr 1fr;
+    justify-items: end;
+    align-items: center;
+    width: min-content;
+  }
+
+  &--label {
+    text-align: right;
+    display: inline;
+    margin-right: 0.5em;
+  }
+
+  &--input {
+    padding: 0.2em;
+    color: var(--text);
+    background: var(--background-alt);
+    border: none;
+    outline: none;
+  }
+
+  &--submit {
+    grid-column: 2;
+    border-radius: none;
+    background-color: var(--background-alt);
+    border: none;
+    outline: none;
+    color: var(--text);
+    cursor: pointer;
+    padding: 0.2em;
+  }
+}
