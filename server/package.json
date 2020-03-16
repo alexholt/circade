@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js --unhandled-rejections=strict"
+    "start": "nodemon index.js --unhandled-rejections=strict"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +15,7 @@
     "cookie-session": "^1.4.0",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "mariadb": "^2.1.5"
+    "mariadb": "^2.1.5",
+    "nodemon": "^2.0.2"
   }
 }

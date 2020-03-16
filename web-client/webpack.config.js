@@ -38,6 +38,7 @@ const config = {
   output: {
     filename: 'main.[hash].js',
     path: path.resolve(__dirname, 'dist'),
+    publicPath: '/',
   },
 
   plugins: [

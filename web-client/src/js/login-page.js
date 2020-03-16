@@ -1,16 +1,18 @@
 import React, {Component} from 'react';
 import {Link} from 'react-router-dom';
+import {get, post} from './easy-fetch';
 
 export default class LoginPage extends Component {
 
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.server = SERVER;
     this.state = {
       email: '',
       password: '',
       message: 'Welcome to Circade!',
       hasError: false,
+      onSuccess: props.onSuccess,
     };
   }
 
@@ -24,7 +26,8 @@ export default class LoginPage extends Component {
 
   handleResponse(res) {
     if (res.status == 'success') {
-      // Handle
+      this.setState({hasError: false, message: 'Success! Redirecting...'});
+      this.state.onSuccess();
     } else if (res.status == 'failure') {
       this.setState({hasError: true, message: res.message});
     }
@@ -38,15 +41,9 @@ export default class LoginPage extends Component {
       password: this.state.password,
     });
 
-    const headers = {
-      'Content-Type': 'application/json',
-    };
-
-    const request = fetch(url, {method: 'POST', mode: 'cors', body, headers});
+    const request = post('/login', {body});
 
     request
-      .then(res => res.json())
-
       .then(res => this.handleResponse(res))
 
       .catch(err => {

@@ -1,5 +1,7 @@
 import React, {useState} from 'react';
 
+import startCase from 'lodash/startCase';
+
 const types = [
   'event',
   'task',
@@ -31,12 +33,22 @@ export default function ({type, content, id, onNoteUpdate}) {
     onNoteUpdate({content, id, type: newType});
   };
 
+  const capitalizedType = startCase(type.replace(/-/g, ' '));
+
   return (
     <div className='notepad--item-container'>
+
       <button onClick={onClick} className='notepad--type-button'>
-        <img src={`/img/note-types/${type}.svg`}/>
+        <img
+          alt={`${capitalizedType}`}
+          title={`${capitalizedType}`}
+          src={`/img/note-types/${type}.svg`}
+        />
       </button>
-      <textarea ref={onRef} className='notepad--item' value={content} onChange={onChange}/>
+
+      <textarea
+        ref={onRef} className='notepad--item' value={content} onChange={onChange}
+      />
     </div>
   );
 }
