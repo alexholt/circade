@@ -36,10 +36,10 @@ export default class LoginPage extends Component {
   onSubmit = (event) => {
     event.preventDefault();
     const url = this.server + '/login';
-    const body = JSON.stringify({
+    const body = {
       email: this.state.email,
       password: this.state.password,
-    });
+    };
 
     const request = post('/login', {body});
 

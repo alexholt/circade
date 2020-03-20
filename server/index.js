@@ -7,7 +7,7 @@ if (env.error) {
   throw env.error;
 }
 
-const {getEntry, postEntry, login, createUser} = require('./db');
+const {getEntries, putEntry, postEntry, deleteEntry, login, createUser} = require('./db');
 
 const app = express();
 
@@ -28,20 +28,20 @@ app.use(function (req, res, next) {
   res.setHeader('Access-Control-Allow-Origin', `${process.env.ORIGIN}`);
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,DELETE,PUT');
   res.setHeader('Content-Type', 'application/json');
   next();
 });
 
-app.get('/entry/:year/:month/:day', async function (req, res) {
+app.get('/entries/:year/:month/:day', async function (req, res) {
   const {year, month, day} = req.params;
 
   if (!req.session.uid) {
     res.end(JSON.stringify({status: 'failure'}));
   }
 
-  getEntry(req.session.uid, `${year}-${month}-${day}`).then(result => {
-    if (!result) result = {title: '', entry: ''};
-    result.status = 'success';
+  getEntries(req.session.uid, `${year}-${month}-${day}`).then(result => {
+    if (!result) result = {type: 'task', entry: ''};
     res.send(JSON.stringify(result));
   });
 });
@@ -96,8 +96,30 @@ app.post('/entry/:year/:month/:day', async function (req, res) {
     return;
   }
 
-  postEntry(req.session.uid, `${year}-${month}-${day}`, req.body.title, req.body.entry).then(result => {
-    res.send(JSON.stringify({status: 'success'}));
+  postEntry(req.session.uid, req.body.id, `${year}-${month}-${day}`, req.body.type, req.body.entry).then(result => {
+    res.send({result});
+  });
+});
+
+app.put('/entry/:year/:month/:day', async function (req, res) {
+  res.setHeader('Content-Type', 'application/json');
+  const {year, month, day} = req.params;
+
+  if (!req.session.uid) {
+    res.send(JSON.stringify({status: 'failure'}));
+    return;
+  }
+
+  putEntry(req.session.uid, `${year}-${month}-${day}`, req.body.type, req.body.entry).then(result => {
+    res.send({id: result[0][0]['last_insert_id()']});
+  });
+});
+
+app.delete('/entry/:year/:month/:day/:id', async function (req, res) {
+  const {year, month, day, id} = req.params;
+
+  deleteEntry(req.session.uid, id, `${year}-${month}-${day}`).then(result => {
+    res.send({result});
   });
 });
 

@@ -9,7 +9,7 @@ const pool = mariadb.createPool({
   connectionLimit: 5
 });
 
-async function execute(statement, values = []) {
+async function execute(statement, values = [], isSingle = true) {
   let conn, rows;
   try {
     conn = await pool.getConnection();
@@ -20,17 +20,36 @@ async function execute(statement, values = []) {
     if (conn) conn.release();
   }
 
-  return rows[0];
+  if (isSingle) return rows[0];
+  return rows;
 }
 
-async function getEntry(userId, date) {
-  return await execute('select title, entry from entry where user_id=? and date=?', [userId, date]);
+async function getEntries(userId, date) {
+  return await execute('select entry, type, id from entries where user_id=? and date=?', [userId, date], false);
 }
 
-async function postEntry(userId, date, title, entry) {
+async function postEntry(userId, id, date, type, entry) {
   return await execute(
-    'insert into entry (user_id, date, title, entry) values (?, ?, ?, ?) ON DUPLICATE KEY UPDATE title=?, entry=?',
-    [userId, date, title, entry, title, entry]
+    'update entries set type=?, entry=? where user_id=? and date=? and id=?',
+    [type, entry, userId, date, id]
+  );
+}
+
+async function putEntry(userId, date, type, entry) {
+  const conn = await pool.getConnection();
+
+  conn.query(
+    'insert into entries set user_id=?, date=?, type=?, entry=?',
+    [userId, date, type, entry]
+  );
+
+  return conn.batch('select last_insert_id()', []);
+}
+
+async function deleteEntry(userId, id, date) {
+  return await execute(
+    'delete from entries where user_id=? and date=? and id=?',
+    [userId, date, id]
   );
 }
 
@@ -59,4 +78,4 @@ async function login(email, password) {
   return null;
 }
 
-module.exports = {getEntry, postEntry, createUser, login};
+module.exports = {getEntries, putEntry, postEntry, deleteEntry, createUser, login};

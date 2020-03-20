@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 
 import startCase from 'lodash/startCase';
 
@@ -9,31 +9,44 @@ const types = [
   'flag',
 ];
 
-export default function ({type, content, id, onNoteUpdate}) {
+export default function ({note, onNoteUpdate, onNoteDelete}) {
 
   const [ref, setRef] = useState(null);
 
   const onChange = function (event) {
-    onNoteUpdate({content: event.target.value, id, type});
+    note.entry = event.target.value;
+    onNoteUpdate(note);
+    note.callback = function () {this.focus()};
   };
 
   const onRef = function (r) {
-    if (r) {
-      setRef(r);
-    }
+    if (r) setRef(r);
 
-    if (ref) {
-      ref.style.height = '';
-      ref.style.height = `${ref.scrollHeight}px`;
+    if (!ref) return;
+
+    ref.style.height = '';
+    ref.style.height = `${ref.scrollHeight}px`;
+
+    if (note.callback) {
+      note.callback.call(ref);
+      delete note.callback;
     }
   };
+
+  useEffect(() => {
+  });
 
   const onClick = function (event) {
-    const newType = types[(types.indexOf(type) + 1) % 4];
-    onNoteUpdate({content, id, type: newType});
+    const newType = types[(types.indexOf(note.type) + 1) % 4];
+    note.type = newType;
+    onNoteUpdate(note);
   };
 
-  const capitalizedType = startCase(type.replace(/-/g, ' '));
+  const deleteNote = function (event) {
+    onNoteDelete(note);
+  };
+
+  const capitalizedType = startCase(note.type.replace(/-/g, ' '));
 
   return (
     <div className='notepad--item-container'>
@@ -42,13 +55,22 @@ export default function ({type, content, id, onNoteUpdate}) {
         <img
           alt={`${capitalizedType}`}
           title={`${capitalizedType}`}
-          src={`/img/note-types/${type}.svg`}
+          src={`/img/note-types/${note.type}.svg`}
         />
       </button>
 
       <textarea
-        ref={onRef} className='notepad--item' value={content} onChange={onChange}
+        ref={onRef} className='notepad--item' value={note.entry} onChange={onChange}
       />
+
+      <button onClick={deleteNote} className='notepad--type-button'>
+        <img
+          alt="Delete the note"
+          title="Delete Note"
+          src="/img/close.svg"
+        />
+      </button>
+
     </div>
   );
 }

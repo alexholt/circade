@@ -22,7 +22,6 @@ CREATE TABLE entries (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   user_id INT UNSIGNED NOT NULL,
   date DATE NOT NULL,
-  title VARCHAR(256) NOT NULL,
   type ENUM('event', 'task', 'completed-task', 'flag') NOT NULL,
   entry TEXT NOT NULL,
 

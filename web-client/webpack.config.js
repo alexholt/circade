@@ -4,6 +4,12 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 const {IgnorePlugin, DefinePlugin} = require('webpack');
 const path = require('path');
 
+const env = require('dotenv').config();
+
+if (env.error) {
+  throw env.error;
+}
+
 const config = {
   mode: process.env.NODE_ENV,
 

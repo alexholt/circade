@@ -4,6 +4,8 @@ import Calendar from './calendar';
 import LoginPage from './login-page';
 import moment from 'moment';
 import Notepad from './notepad';
+import cloneDeep from 'lodash/cloneDeep';
+import last from 'lodash/last';
 
 import {
   BrowserRouter as Router,
@@ -15,37 +17,60 @@ import {
   Redirect,
 } from 'react-router-dom';
 
-import {get} from './easy-fetch';
+import {put, get, post, del} from './easy-fetch';
+
+const emptyNote = {
+  entry: '',
+  type: 'task',
+  id: null,
+};
 
 export default class App extends Component {
 
   constructor() {
     super();
 
+    this.tempIdCounter = 0;
+
     this.server = SERVER;
+
+    this.outboundQueue = [];
+    this.isSending = false;
 
     this.state = {
       selectedDate: moment(),
       isLoggedIn: false,
-      notes: [
-        {
-          content: 'hello hello',
-          type: 'flag',
-          id: '1',
-        },
-      ],
+      notes: [],
+      isLoading: true,
     };
+
+    this.fetchEntries(...this.getDateArray());
+  }
+
+  fetchEntries = (year, month, day) => {
+    get(`/entries/${year}/${month}/${day}`).then(entries => {
+
+      setTimeout(() =>
+        this.setState({
+          notes: entries,
+          isLoading: false,
+        }), 1000
+      );
+    });
   }
 
   calendar = () => {
     const history = useHistory();
 
     const onDateSelected = (selectedDate) => {
+      this.setState({isLoading: true});
       const year = selectedDate.format('YYYY');
       const month = selectedDate.format('MM');
       const day = selectedDate.format('DD');
 
       history.push(`/journal/${year}/${month}/${day}`);
+
+      this.fetchEntries(year, month, day);
 
       this.setState({
         selectedDate,
@@ -59,20 +84,57 @@ export default class App extends Component {
     );
   }
 
+  getDatePath() {
+    const year = this.state.selectedDate.format('YYYY');
+    const month = this.state.selectedDate.format('MM');
+    const day = this.state.selectedDate.format('DD');
+    return `/${year}/${month}/${day}`;
+  }
 
   onNoteUpdate = (note) => {
-    const notes = this.state.notes;
-    const found = notes.find(search => search.id = note.id);
+    const path = `/entry${this.getDatePath()}`;
 
-    if (!found) {
-      note.id = 99;
-      notes.push(note);
+    if (note.id == null) {
+      note.id = 'TEMP_ID_' + this.tempIdCounter++;
+
+      put(path, {body: note}).then(res => {
+        note.id = res.id;
+      });
+
     } else {
-      found.content = note.content;
-      found.type = note.type;
+
+      post(path, {body: note}).then(res => {
+        console.dir(res);
+      });
+
     }
 
+    this.setState({notes: this.state.notes});
+
+  }
+
+  onNoteAdd = () => {
+    const notes = this.state.notes;
+    if (notes.length > 0 && last(notes).id == null) return;
+    notes.push(cloneDeep(emptyNote));
+    last(notes).callback = function (event) {console.log('added'); this.focus()};
     this.setState({notes});
+  }
+
+  onNoteDelete = ({id}) => {
+    const datePath = this.getDatePath();
+    del(`/entry${datePath}/${id}`).then(res => {
+      const notes = this.state.notes;
+      let index = -1;
+      notes.forEach((noteInCollection, i) => {
+        if (noteInCollection.id == id) {
+          index = i;
+        }
+      });
+
+      notes.splice(index, 1);
+      this.setState({notes});
+    });
   }
 
   journalRoute = () => {
@@ -86,6 +148,9 @@ export default class App extends Component {
           title={this.state.selectedDate.format('dddd LL')}
           notes={this.state.notes}
           onNoteUpdate={this.onNoteUpdate}
+          onNoteDelete={this.onNoteDelete}
+          onNoteAdd={this.onNoteAdd}
+          isLoading={this.state.isLoading}
         />
       </div>
     );
@@ -131,20 +196,21 @@ export default class App extends Component {
     return <div></div>;
   }
 
+  getDateArray() {
+    return [
+      moment().format('YYYY'),
+      moment().format('MM'),
+      moment().format('DD'),
+    ];
+  }
+
   render() {
     const Journal = this.journalRoute;
     const LogOut = this.logout;
     const LoginPage = this.loginPageWithRedirect;
     const CheckIfLoggedIn = this.checkIfLoggedIn;
 
-    const year = moment().format('YYYY');
-    const month = moment().format('MM');
-    const day = moment().format('DD');
-
-    const Year = function () {
-      let { year } = useParams();
-      return <div>{year}</div>;
-    };
+    const [year, month, day] = this.getDateArray();
 
     return (
       <Router>

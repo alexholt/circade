@@ -1,12 +1,11 @@
 .calendar {
   padding-top: 20px;
-  padding-left: 50px;
-  padding-right: 50px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
   text-align: center;
+  user-select: none;
 
   &--dates {
     display: grid;
