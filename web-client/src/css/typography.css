@@ -15,6 +15,11 @@ h2 {
   font-weight: 700;
 }
 
+h3 {
+  font-size: 20px;
+  font-weight: 400;
+}
+
 a {
   color: var(--text);
   font-size: 18px;

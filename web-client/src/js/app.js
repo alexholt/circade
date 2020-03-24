@@ -42,9 +42,23 @@ export default class App extends Component {
       isLoggedIn: false,
       notes: [],
       isLoading: true,
+      hasError: false,
+      tasks: [],
     };
 
     this.fetchEntries(...this.getDateArray());
+    this.fetchTasks();
+  }
+
+  static getDerivedStateFromError(error) {
+    // Update state so the next render will show the fallback UI.
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    // You can also log the error to an error reporting service
+    //logErrorToMyService(error, errorInfo);
+    console.error(errorInfo);
   }
 
   fetchEntries = (year, month, day) => {
@@ -54,8 +68,17 @@ export default class App extends Component {
         this.setState({
           notes: entries,
           isLoading: false,
-        }), 1000
+        })
+        , 100
       );
+    });
+  }
+
+  fetchTasks = () => {
+    get(`/outstanding-tasks`).then(tasks => {
+      this.setState({
+        tasks,
+      });
     });
   }
 
@@ -79,7 +102,9 @@ export default class App extends Component {
 
     return (
       <Calendar
-        selectedDate={this.state.selectedDate} onDateSelected={onDateSelected}
+        selectedDate={this.state.selectedDate}
+        onDateSelected={onDateSelected}
+        tasks={this.state.tasks}
       />
     );
   }
@@ -209,6 +234,8 @@ export default class App extends Component {
     const LogOut = this.logout;
     const LoginPage = this.loginPageWithRedirect;
     const CheckIfLoggedIn = this.checkIfLoggedIn;
+
+    if (this.state.hasError) return <h1>Something has gone horribly wrong!</h1>;
 
     const [year, month, day] = this.getDateArray();
 

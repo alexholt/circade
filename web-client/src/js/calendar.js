@@ -29,12 +29,35 @@ function days(start, end, selected, onSelected) {
   });
 }
 
-export default function({selectedDate, onDateSelected}) {
+function Tasks({tasks}) {
+  let lastDate = moment('2000-01-01');
+  let dateHeading = null;
+
+  const mapped = tasks.map(task => {
+    const currentDate = moment(task.date);
+
+    if (!lastDate.isSame(currentDate, 'date')) {
+      lastDate = currentDate;
+      dateHeading = <h3>{`${currentDate.format('MMMM')} ${currentDate.date()}`}</h3>;
+    }
+
+    return (
+      <a href={`/entries/${lastDate.year()}/${lastDate.month()}/${lastDate.date()}`}>
+        {dateHeading}
+        <div>{task.entry}</div>
+      </a>
+    );
+  });
+
+  return <>{mapped}</>;
+}
+
+export default function({selectedDate, onDateSelected, tasks}) {
   let start = selectedDate.clone().startOf('month').startOf('week');
   let end = selectedDate.clone().endOf('month').endOf('week');
 
   return (
-    <div className='layout--calendar calendar'>
+    <div className='layout--calendar layout--rhythm calendar'>
       <h1>{moment(selectedDate).format('MMMM')}</h1>
       <div className='calendar--dates'>
         {labels()}
@@ -42,7 +65,7 @@ export default function({selectedDate, onDateSelected}) {
       </div>
 
       <div className="calendar--tray">
-        <a href="/outstanding-tasks">Outstanding Tasks</a>
+        <Tasks tasks={tasks}/>
         <a href="/logout">Logout</a>
       </div>
     </div>

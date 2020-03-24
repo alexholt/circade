@@ -6,9 +6,9 @@ import last from 'lodash/last';
 
 export default function ({isLoading, notes, title, onNoteUpdate, onNoteDelete, onNoteAdd}) {
 
-  const blankNoteClass = (notes.length == 0 || last(notes).id) == null ?
-    'notepad--hidden' :
-    '';
+  const blankNoteClass = (notes.length == 0 || last(notes).id != null) ?
+    '' :
+    'notepad--hidden';
 
   let i = 0;
   notes.forEach(note => note.key = i++);

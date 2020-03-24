@@ -7,7 +7,15 @@ if (env.error) {
   throw env.error;
 }
 
-const {getEntries, putEntry, postEntry, deleteEntry, login, createUser} = require('./db');
+const {
+  getEntries,
+  putEntry,
+  postEntry,
+  deleteEntry,
+  login,
+  createUser,
+  getOutstandingTasks,
+} = require('./db');
 
 const app = express();
 
@@ -42,6 +50,16 @@ app.get('/entries/:year/:month/:day', async function (req, res) {
 
   getEntries(req.session.uid, `${year}-${month}-${day}`).then(result => {
     if (!result) result = {type: 'task', entry: ''};
+    res.send(JSON.stringify(result));
+  });
+});
+
+app.get('/outstanding-tasks', async function (req, res) {
+  if (!req.session.uid) {
+    res.end(JSON.stringify({status: 'failure'}));
+  }
+
+  getOutstandingTasks(req.session.uid).then(result => {
     res.send(JSON.stringify(result));
   });
 });

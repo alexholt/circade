@@ -28,6 +28,14 @@ async function getEntries(userId, date) {
   return await execute('select entry, type, id from entries where user_id=? and date=?', [userId, date], false);
 }
 
+async function getOutstandingTasks(userId) {
+  return await execute(
+    'select entry, date from entries where user_id=? and type=? order by date asc',
+    [userId, 'task'],
+    false
+  );
+}
+
 async function postEntry(userId, id, date, type, entry) {
   return await execute(
     'update entries set type=?, entry=? where user_id=? and date=? and id=?',
@@ -78,4 +86,12 @@ async function login(email, password) {
   return null;
 }
 
-module.exports = {getEntries, putEntry, postEntry, deleteEntry, createUser, login};
+module.exports = {
+  getEntries,
+  putEntry,
+  postEntry,
+  deleteEntry,
+  createUser,
+  login,
+  getOutstandingTasks,
+};
