@@ -21,7 +21,7 @@ const app = express();
 
 app.use(cookieSession({
   name: 'session',
-  keys: ['mysecret'],
+  keys: [process.env.SESSION_SECRET],
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }));
 
@@ -44,8 +44,9 @@ app.use(function (req, res, next) {
 app.get('/entries/:year/:month/:day', async function (req, res) {
   const {year, month, day} = req.params;
 
-  if (!req.session.uid) {
+  if (!req.session.uid || req.session.uid == 'undefined') {
     res.end(JSON.stringify({status: 'failure'}));
+    return;
   }
 
   getEntries(req.session.uid, `${year}-${month}-${day}`).then(result => {
@@ -57,6 +58,7 @@ app.get('/entries/:year/:month/:day', async function (req, res) {
 app.get('/outstanding-tasks', async function (req, res) {
   if (!req.session.uid) {
     res.end(JSON.stringify({status: 'failure'}));
+    return;
   }
 
   getOutstandingTasks(req.session.uid).then(result => {
@@ -65,6 +67,7 @@ app.get('/outstanding-tasks', async function (req, res) {
 });
 
 app.get('/logout', function (req, res) {
+  res.redirect('/login');
   res.end();
 });
 
@@ -74,6 +77,10 @@ app.get('/login', function (req, res) {
 
 app.options('/login', function (req, res, next) {
   next();
+});
+
+app.post('/auto', function (req, res) {
+  res.send(JSON.stringify(req.body));
 });
 
 app.post('/login', async function (req, res) {

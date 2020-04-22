@@ -1,11 +1,13 @@
 import React, {Component} from 'react';
 
+import AccountCreationPage from './account-creation-page';
 import Calendar from './calendar';
 import LoginPage from './login-page';
 import moment from 'moment';
 import Notepad from './notepad';
 import cloneDeep from 'lodash/cloneDeep';
 import last from 'lodash/last';
+import CheckPretty from './check-pretty';
 
 import {
   BrowserRouter as Router,
@@ -15,6 +17,7 @@ import {
   useHistory,
   useParams,
   Redirect,
+	matchPath,
 } from 'react-router-dom';
 
 import {put, get, post, del} from './easy-fetch';
@@ -34,11 +37,9 @@ export default class App extends Component {
 
     this.server = SERVER;
 
-    this.outboundQueue = [];
-    this.isSending = false;
+		this.lastSeen = null;
 
     this.state = {
-      selectedDate: moment(),
       isLoggedIn: false,
       notes: [],
       isLoading: true,
@@ -46,7 +47,16 @@ export default class App extends Component {
       tasks: [],
     };
 
-    this.fetchEntries(...this.getDateArray());
+		const match = matchPath(location.pathname, { path: '/journal/:year/:month/:day' });
+
+		if (match) {
+    	this.fetchEntries(
+				match.params.year,
+				match.params.month,
+				match.params.day,
+			);
+		}
+
     this.fetchTasks();
   }
 
@@ -56,8 +66,6 @@ export default class App extends Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // You can also log the error to an error reporting service
-    //logErrorToMyService(error, errorInfo);
     console.error(errorInfo);
   }
 
@@ -94,26 +102,24 @@ export default class App extends Component {
       history.push(`/journal/${year}/${month}/${day}`);
 
       this.fetchEntries(year, month, day);
-
-      this.setState({
-        selectedDate,
-      });
     };
+
+		const {year, month, day} = useParams();
+    const activeDate = moment(`${year}-${month}-${day}`);
 
     return (
       <Calendar
-        selectedDate={this.state.selectedDate}
         onDateSelected={onDateSelected}
         tasks={this.state.tasks}
+				selectedDate={activeDate}
       />
     );
   }
 
   getDatePath() {
-    const year = this.state.selectedDate.format('YYYY');
-    const month = this.state.selectedDate.format('MM');
-    const day = this.state.selectedDate.format('DD');
-    return `/${year}/${month}/${day}`;
+		const {params} = matchPath(location.pathname, { path: '/journal/:year/:month/:day' });
+
+    return `/${params.year}/${params.month}/${params.day}`;
   }
 
   onNoteUpdate = (note) => {
@@ -135,7 +141,7 @@ export default class App extends Component {
     }
 
     this.setState({notes: this.state.notes});
-
+    this.fetchTasks();
   }
 
   onNoteAdd = () => {
@@ -144,6 +150,7 @@ export default class App extends Component {
     notes.push(cloneDeep(emptyNote));
     last(notes).callback = function (event) {console.log('added'); this.focus()};
     this.setState({notes});
+    this.fetchTasks();
   }
 
   onNoteDelete = ({id}) => {
@@ -159,18 +166,26 @@ export default class App extends Component {
 
       notes.splice(index, 1);
       this.setState({notes});
+    	this.fetchTasks();
     });
   }
 
   journalRoute = () => {
+		const {year, month, day} = useParams();
+		if (this.lastSeen != `${year}-${month}-${day}`) {
+			this.lastSeen = `${year}-${month}-${day}`;
+			this.fetchEntries(year, month, day);
+		}
 
+
+		const date = moment(`${year}-${month}-${day}`);
     const Calendar = this.calendar;
 
     return (
       <div className='layout'>
         <Calendar/>
         <Notepad
-          title={this.state.selectedDate.format('dddd LL')}
+          title={date.format('dddd LL')}
           notes={this.state.notes}
           onNoteUpdate={this.onNoteUpdate}
           onNoteDelete={this.onNoteDelete}
@@ -207,7 +222,7 @@ export default class App extends Component {
       }
     });
 
-    return <div>Loading...</div>;
+    return <div className="loading"><CheckPretty/></div>;
   }
 
   logout = () => {
@@ -218,15 +233,7 @@ export default class App extends Component {
       history.push('/login');
     });
 
-    return <div></div>;
-  }
-
-  getDateArray() {
-    return [
-      moment().format('YYYY'),
-      moment().format('MM'),
-      moment().format('DD'),
-    ];
+    return <div className="loading"><CheckPretty/></div>;
   }
 
   render() {
@@ -237,26 +244,31 @@ export default class App extends Component {
 
     if (this.state.hasError) return <h1>Something has gone horribly wrong!</h1>;
 
-    const [year, month, day] = this.getDateArray();
+		const today = moment();
 
     return (
       <Router>
+
         <Switch>
 
           <Route path="/login">
             <LoginPage/>
           </Route>
 
+          <Route path="/create-account">
+            <AccountCreationPage/>
+          </Route>
+
           <Route path="/logout">
             <LogOut/>
           </Route>
 
-          <Route path="/journal/:year/:month/:day">
+          <Route path={`/journal/:year/:month/:day`}>
             {this.state.isLoggedIn ? <Journal/> : <CheckIfLoggedIn/>}
           </Route>
 
           <Route path="/journal">
-            <Redirect to={`/journal/${year}/${month}/${day}`}/>
+            <Redirect to={`/journal/${today.year()}/${today.format('MM')}/${today.format('DD')}`}/>
           </Route>
 
           <Route path="/">

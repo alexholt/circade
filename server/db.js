@@ -30,7 +30,7 @@ async function getEntries(userId, date) {
 
 async function getOutstandingTasks(userId) {
   return await execute(
-    'select entry, date from entries where user_id=? and type=? order by date asc',
+    'select entry, date, id from entries where user_id=? and type=? order by date asc',
     [userId, 'task'],
     false
   );

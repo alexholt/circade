@@ -2,11 +2,10 @@
   display: grid;
   grid-template-columns: 1fr 3fr;
   height: 100vh;
-  width: 100vw;
 
   &--rhythm {
     & > * ~ * {
-      margin-top: calc(2em + 5vh);
+      margin-top: calc(2em);
     }
   }
 }
@@ -44,3 +43,9 @@
   }
 }
 
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}

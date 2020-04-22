@@ -15,8 +15,6 @@ export default function ({isLoading, notes, title, onNoteUpdate, onNoteDelete, o
 
   let inner = (
     <>
-      {/*loading(isLoading)*/}
-
       {isLoading ? <CheckPretty isHidden={!isLoading}/> : null}
 
       <div className={`notepad__hidable-container ${isLoading ? 'notepad--hidden' : ''}`}>

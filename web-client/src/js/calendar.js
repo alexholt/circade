@@ -1,6 +1,9 @@
 import React from 'react';
 import moment from 'moment';
 
+import {Link} from 'react-router-dom';
+
+
 function labels() {
   return ['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) =>
     <strong key={i} className="calendar--day">{day}</strong>
@@ -31,21 +34,33 @@ function days(start, end, selected, onSelected) {
 
 function Tasks({tasks}) {
   let lastDate = moment('2000-01-01');
-  let dateHeading = null;
 
   const mapped = tasks.map(task => {
+    let dateHeading = null;
     const currentDate = moment(task.date);
 
     if (!lastDate.isSame(currentDate, 'date')) {
       lastDate = currentDate;
-      dateHeading = <h3>{`${currentDate.format('MMMM')} ${currentDate.date()}`}</h3>;
+
+      dateHeading = (
+        <h3 className='calendar--tray--heading'>
+          {`${currentDate.format('MMMM')} ${currentDate.date()}`}
+        </h3>
+      );
     }
 
     return (
-      <a href={`/entries/${lastDate.year()}/${lastDate.month()}/${lastDate.date()}`}>
-        {dateHeading}
-        <div>{task.entry}</div>
-      </a>
+			<div>
+      	{dateHeading}
+
+      	<Link
+					key={`link-${task.id}`}
+					to={`/journal/${lastDate.year()}/${lastDate.format('MM')}/${lastDate.date()}`}
+				>
+          &sdot;{task.entry}
+      	</Link>
+
+			</div>
     );
   });
 
@@ -65,6 +80,7 @@ export default function({selectedDate, onDateSelected, tasks}) {
       </div>
 
       <div className="calendar--tray">
+				<h2>Outstanding Tasks</h2>
         <Tasks tasks={tasks}/>
         <a href="/logout">Logout</a>
       </div>
