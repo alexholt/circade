@@ -1,4 +1,3 @@
-const crypto = require('crypto');
 const mariadb = require('mariadb');
 
 const pool = mariadb.createPool({
@@ -15,6 +14,7 @@ async function execute(statement, values = [], isSingle = true) {
     conn = await pool.getConnection();
     rows = await conn.query(statement, values);
   } catch (err) {
+    console.log("Couldn't execute: " + statement);
     throw err;
   } finally {
     if (conn) conn.release();
@@ -72,16 +72,44 @@ async function getUser(email) {
 }
 
 async function createUser(email, password) {
-  const hashed = await sha512(password);
-  const result = await execute('insert into users (email, password) values (?, ?)', [email, hashed]);
-  return await getUser(email).id;
+  try {
+    const hashed = await sha512(password);
+    await execute('insert into users (email, password) values (?, ?)', [email, hashed]);
+
+  } catch (err) {
+    return {
+      status: 'failure',
+      message: err.code,
+    };
+  }
+
+  const user = await getUser(email);
+
+  return {
+    status: 'success',
+    message: user.id,
+  };
+}
+
+async function deleteUser(email, password) {
+  try {
+    const hashed = await sha512(password);
+    await execute('delete from users where email=? and password=?', [email, hashed]);
+  } catch (err) {
+    console.error("Couldn't delete");
+    return {
+      status: 'failure',
+      message: err.code,
+    };
+  }
+
+  return { status: 'success' };
 }
 
 async function login(email, password) {
   const hashed = await sha512(password);
   const user = await getUser(email);
   if (!user) return null;
-  console.log(hashed, user.password);
   if (hashed == user.password) return user.id;
   return null;
 }
@@ -92,6 +120,7 @@ module.exports = {
   postEntry,
   deleteEntry,
   createUser,
+  deleteUser,
   login,
   getOutstandingTasks,
 };

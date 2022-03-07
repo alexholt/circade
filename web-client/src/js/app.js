@@ -11,12 +11,11 @@ import CheckPretty from './check-pretty';
 
 import {
   BrowserRouter as Router,
-  Switch,
   Route,
-  Link,
-  useHistory,
+  Routes,
+  useNavigate,
   useParams,
-  Redirect,
+  Navigate,
 	matchPath,
 } from 'react-router-dom';
 
@@ -47,7 +46,7 @@ export default class App extends Component {
       tasks: [],
     };
 
-		const match = matchPath(location.pathname, { path: '/journal/:year/:month/:day' });
+		const match = matchPath(location.pathname,'/journal/:year/:month/:day');
 
 		if (match) {
     	this.fetchEntries(
@@ -57,7 +56,7 @@ export default class App extends Component {
 			);
 		}
 
-    this.fetchTasks();
+    //this.fetchTasks();
   }
 
   static getDerivedStateFromError(error) {
@@ -66,7 +65,10 @@ export default class App extends Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error(errorInfo);
+    const a = new Error()
+    a.message = error.message;
+    a.stack = errorInfo.componentStack;
+    throw a;
   }
 
   fetchEntries = (year, month, day) => {
@@ -91,7 +93,7 @@ export default class App extends Component {
   }
 
   calendar = () => {
-    const history = useHistory();
+    const navigate = useNavigate();
 
     const onDateSelected = (selectedDate) => {
       this.setState({isLoading: true});
@@ -99,7 +101,7 @@ export default class App extends Component {
       const month = selectedDate.format('MM');
       const day = selectedDate.format('DD');
 
-      history.push(`/journal/${year}/${month}/${day}`);
+      navigate(`/journal/${year}/${month}/${day}`);
 
       this.fetchEntries(year, month, day);
     };
@@ -197,28 +199,28 @@ export default class App extends Component {
   }
 
   loginPageWithRedirect = () => {
-    let history = useHistory();
+    let navigate = useNavigate();
 
     const onLogIn = () => {
       this.setState({
         isLoggedIn: true,
       });
 
-      history.push('/journal');
+      navigate('/journal');
     };
 
     return <LoginPage onSuccess={onLogIn}/>;
   }
 
   checkIfLoggedIn = () => {
-    let history = useHistory();
+    let navigate = useNavigate();
 
     get('/login').then(res => {
       if (res.status == 'success') {
         this.setState({isLoggedIn: true});
-        history.push('/journal');
+        navigate('/journal');
       } else {
-        history.push('/login');
+        navigate('/login');
       }
     });
 
@@ -226,11 +228,11 @@ export default class App extends Component {
   }
 
   logout = () => {
-    let history = useHistory();
+    let navigate = useNavigate();
 
     get('/logout').then(res => {
       this.setState({isLoggedIn: false});
-      history.push('/login');
+      navigate('/login');
     });
 
     return <div className="loading"><CheckPretty/></div>;
@@ -246,38 +248,34 @@ export default class App extends Component {
 
 		const today = moment();
 
+    const LoginCheckedJournal = this.state.isLoggedIn ? <Journal/> : <CheckIfLoggedIn/>;
+
     return (
       <Router>
 
-        <Switch>
+        <Routes>
+          <Route path="/login" element={<LoginPage/>}/>
 
-          <Route path="/login">
-            <LoginPage/>
-          </Route>
+          <Route path="/create-account" element={<AccountCreationPage/>}/>
 
-          <Route path="/create-account">
-            <AccountCreationPage/>
-          </Route>
+          <Route path="/logout" element={<LogOut/>}/>
 
-          <Route path="/logout">
-            <LogOut/>
-          </Route>
+          <Route path={`/journal/:year/:month/:day`} element={<LoginCheckedJournal/>}/>
 
-          <Route path={`/journal/:year/:month/:day`}>
-            {this.state.isLoggedIn ? <Journal/> : <CheckIfLoggedIn/>}
-          </Route>
-
-          <Route path="/journal">
-            <Redirect to={`/journal/${today.year()}/${today.format('MM')}/${today.format('DD')}`}/>
-          </Route>
-
-          <Route path="/">
-            <Redirect to='/journal'/>
-          </Route>
-
-        </Switch>
+        </Routes>
       </Router>
 
     );
   }
 }
+
+/*
+<Route path="/journal">
+  <Navigate to={`/journal/${today.year()}/${today.format('MM')}/${today.format('DD')}`}/>
+</Route>
+
+<Route path="/">
+  <Navigate to='/login'/>
+</Route>
+
+*/

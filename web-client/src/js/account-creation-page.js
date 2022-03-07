@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {Link} from 'react-router-dom';
-import {get, post} from './easy-fetch';
+import {get, post, put} from './easy-fetch';
 
 export default class AccountCreationPage extends Component {
 
@@ -35,13 +35,12 @@ export default class AccountCreationPage extends Component {
 
   onSubmit = (event) => {
     event.preventDefault();
-    const url = this.server + '/login';
     const body = {
       email: this.state.email,
       password: this.state.password,
     };
 
-    const request = post('/login', {body});
+    const request = put('/user', {body});
 
     request
       .then(res => this.handleResponse(res))

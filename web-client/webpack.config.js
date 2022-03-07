@@ -34,7 +34,7 @@ const config = {
 
       {
         test: /\.css$/,
-        use: [ 'style-loader', 'postcss-loader' ]
+        use: [ 'style-loader', 'css-loader', 'postcss-loader' ]
       }
     ],
 
@@ -52,18 +52,20 @@ const config = {
       template: path.resolve(__dirname, 'src/index.html'),
     }),
 
-    new CopyWebpackPlugin([
-      {
-        from: path.resolve(__dirname, 'serve.json'),
-        to: path.resolve(__dirname, 'dist/serve.json'),
-      },
-      {
-        from: path.resolve(__dirname, 'img'),
-        to: path.resolve(__dirname, 'dist/img'),
-      }
-    ]),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: path.resolve(__dirname, 'serve.json'),
+          to: path.resolve(__dirname, 'dist/serve.json'),
+        },
+        {
+          from: path.resolve(__dirname, 'img'),
+          to: path.resolve(__dirname, 'dist/img'),
+        }
+      ]
+    }),
 
-    new IgnorePlugin(/^\.\/locale$/, /moment$/),
+    new IgnorePlugin({resourceRegExp: /^\.\/locale$/, contextRegExp: /moment$/}),
 
     new DefinePlugin({
       NODE_ENV: `'${process.env.NODE_ENV}'`,

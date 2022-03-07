@@ -1,6 +1,9 @@
 const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session');
 const express = require('express');
+const emailValidator = require('email-validator');
+const passwordValidator = require('./password-validator');
+
 const env = require('dotenv').config();
 
 if (env.error) {
@@ -103,13 +106,28 @@ app.post('/login', async function (req, res) {
 });
 
 app.put('/user', async function (req, res) {
-  const id = await createUser(req.body.email, req.body.password);
-  if (id == null) {
-    res.send(JSON.stringify({status: 'failure'}));
-  } else {
-    req.session.uid = id;
-    res.send(JSON.stringify({status: 'success'}));
+  if (!emailValidator.validate(req.body.email)) {
+    res.status(400);
+    res.send({ status: 'invalid request', field: 'email', message: 'Email is not a valid one.'});
+    return req.next();
   }
+
+  if (!passwordValidator.validate(req.body.password)) {
+    res.status(400);
+    res.send({
+      status: 'invalid request',
+      field: 'password',
+      message: 'Password must be at least 10 characters and contain both uppercase and lowercase letters.'
+    });
+    return req.next();
+  }
+
+  const result = await createUser(req.body.email, req.body.password);
+  if (result.status === 'success') {
+    req.session.uid = result.message;
+  }
+
+  res.send(JSON.stringify(result));
 });
 
 app.post('/entry/:year/:month/:day', async function (req, res) {
@@ -149,3 +167,6 @@ app.delete('/entry/:year/:month/:day/:id', async function (req, res) {
 });
 
 app.listen(process.env.PORT, () => console.log(`Listening on ${process.env.PORT}`));
+
+// Export for testing
+module.exports = app;
