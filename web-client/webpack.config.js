@@ -42,7 +42,7 @@ const config = {
   },
 
   output: {
-    filename: 'main.[hash].js',
+    filename: 'main.[chunkhash].js',
     path: path.resolve(__dirname, 'dist'),
     publicPath: '/',
   },

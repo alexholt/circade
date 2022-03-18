@@ -35,7 +35,7 @@ export default class LoginPage extends Component {
 
   onSubmit = (event) => {
     event.preventDefault();
-    const url = this.server + '/login';
+
     const body = {
       email: this.state.email,
       password: this.state.password,
@@ -57,9 +57,9 @@ export default class LoginPage extends Component {
   render() {
     return (
       <div className='login layout__login layout--rhythm'>
-        <img src='/img/logo.svg'/>
+        <img className='login__logo' src='/img/logo-white.svg?cb=2'/>
 
-        <h4 className={this.state.hasError ? 'text--error' : ''}>{this.state.message}</h4>
+        <h1 className={this.state.hasError ? 'text--error' : ''}>{this.state.message}</h1>
 
         <form className='login--form' onSubmit={this.onSubmit}>
           <label className='login--label' htmlFor='email'>Email:</label>

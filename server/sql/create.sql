@@ -22,14 +22,28 @@ CREATE TABLE entries (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   user_id INT UNSIGNED NOT NULL,
   date DATE NOT NULL,
-  type ENUM('event', 'task', 'completed-task', 'flag') NOT NULL,
-  entry TEXT NOT NULL,
+  content TEXT NOT NULL,
 
   CONSTRAINT `fk_user_id`
     FOREIGN KEY (user_id) REFERENCES users (id)
     ON DELETE CASCADE
     ON UPDATE RESTRICT
+) ENGINE = InnoDB;
 
+CREATE TABLE bullets (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  entry_id INT UNSIGNED NOT NULL,
+  title TEXT NOT NULL,
+  status ENUM ('regular', 'open', 'closed', 'important') NOT NULL,
+
+  CONSTRAINT `fk_entry_id`
+    FOREIGN KEY (entry_id) REFERENCES entries (id)
+      ON DELETE CASCADE
+      ON UPDATE RESTRICT
 ) ENGINE = InnoDB;
 
 INSERT INTO users (email, password) VALUES ('me@alexholt.me', SHA(CONCAT('test', @AUTH_SALT)));
+
+set @UID = (select id from users where email = 'me@alexholt.me');
+
+INSERT INTO entries (user_id, date, content) VALUES (@UID, )

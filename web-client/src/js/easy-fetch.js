@@ -1,5 +1,6 @@
 const host = SERVER;
-const opts = {mode: 'cors', credentials: 'include'};
+//const opts = {mode: 'cors', credentials: 'include'};
+const opts = {};
 
 function easyFetch(method, path, extraOpts) {
   const finalOpts = Object.assign({method}, opts, extraOpts);

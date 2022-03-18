@@ -28,12 +28,20 @@
 
   &--submit {
     grid-column: 2;
-    border-radius: 2px;
     background-color: var(--button);
-    border: none;
+    border: 2px solid white;
     outline: none;
     color: var(--text-alt);
     cursor: pointer;
-    padding: 0.2em;
+    padding: 0.5em 1.5em;
+    color: white;
+
+    &:hover {
+      background: var(--background-alt);
+    }
+  }
+
+  &__logo {
+    max-width: 300px;
   }
 }
